@@ -71,8 +71,11 @@ module Parser = struct
   let none_of chars = satisfy (fun c -> not (List.exists ((=) c) chars))
 
   let digit = satisfy (fun c -> '0' <= c && c <= '9')
-  let rec digits acc = (digit >>= fun d -> digits (d :: acc)) <|> return (List.rev acc)
-  let natural = digits [] |> fun cs -> return (int_of_string (String.of_seq (List.to_seq cs)))
+  let rec digits acc =
+    (digit >>= fun d -> digits (d :: acc)) <|> return (List.rev acc)
+  let natural =
+    digits []
+    |> fun cs -> return (int_of_string (String.of_seq (List.to_seq cs)))
   
   let space = char ' '
   let optional_cr = (char '\r') <|> return '\000'
@@ -88,6 +91,34 @@ module Parser = struct
 end
 
 (*** GRAPH *******************************************************************)
+
+(* NOTE: N'EST PAS THREAD-SAFE SANS PRÉCAUTIONS UTILISATEURS. *)
+
+module Graph = struct
+  type t = int list array
+
+  let create n = Array.make n []
+  let size g = Array.length g
+
+  let is_valid_vertex g u = 0 <= u && u < size g
+
+  let edge_exists g u v = List.exists ((=) v) g.(u)
+
+  let add_edge g u v =
+    if not (is_valid_vertex g u && is_valid_vertex g v)
+    then invalid_arg "invalid vertex";
+    if u = v then invalid_arg "self-loop forbidden";
+    if not (edge_exists g u v) then begin
+      g.(u) <- v :: g.(u);
+      g.(v) <- u :: g.(v)
+    end
+
+  let neighbors g u =
+    if not (is_valid_vertex g u) then invalid_arg "invalid vertex";
+    g.(u)
+
+  let degree g u = List.length (neighbors g u)
+end
 
 (*** MAIN ********************************************************************)
 
@@ -131,19 +162,50 @@ let parse_board_file data =
   | Some _, s' -> failwith "invalid size"
   | None -> failwith "invalid input"
 
-(* Sémantique denotationelle vers un graphe. *)
+let validate_ast n ast =
+  List.length ast = n or List.for_all (fun row -> List.length row = n) ast
+
+(* Sémantique denotationelle vers un graphe.
+
+   Le domaine visé est un graphe simple et non-orientée.
+   Chaque cellule N ou B devient un sommet de ce graphe, et une arête existe
+   entre un sommet et son voisin de droite ainsi que le sommet et son voisin
+   du dessous.
+*)
+
+let construct_graph ast = (* A TESTER *)
+  let open Graph in
+  let rows = Array.of_list (List.map Array.of_list ast) in
+  let n = Array.length rows in
+  let g = Graph.create (n * n) in
+  let id i j = i * n + j in
+  let neighbors i, j = [(i, j+1); (i+1, j)] in
+  let is_valid i, j = 0 <= i && i < n && 0 <= j && j < n && match rows.(i).(j) with X -> false | _ -> true
+  in
+  rows
+  |> Array.mapi (fun i row ->
+       row |> Array.mapi (fun j cell ->
+           match cell with N | B -> Some i, j | X -> None))
+  |> Array.to_list
+  |> List.concat
+  |> List.filter_map Fun.id
+  |> List.iter (fun cell ->
+       neighbors cell
+       |> List.filter is_valid
+       |> List.iter (fun nbr -> Graph.add_edge g (id (fst cell) (snd cell)) (id (fst nbr) (snd nbr))));
+  g
 
 (* Algorithme de Hopcroft-Karp et vérifications axiomatiques *)
 
-(* Génèse. *)
+(* Génèse, organisée comme un compilateur à passe unique. *)
 
 let () =
-  let filename = "echiquier.dat" in
+  let filename = "echiquier.dat" in (* TODO: read input and output filenames from argv *)
   let data = read_board_file filename in
   let n, ast = parse_board_data data in
   if validate_ast n ast then
     let graph = construct_graph ast in
-    (* TODO *)
+    (* TODO: HK pour couplage, et sortie *)
   else
     failwith "invalid board"
 
