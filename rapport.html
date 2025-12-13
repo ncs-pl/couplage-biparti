@@ -149,9 +149,584 @@ Le projet cherche à implanter et appliquer l'algorithme de Hopcroft-Karp
 (Hopcroft, 1973) en OCaml (Leroy, 1990).
 
 <p>
-Ce document présente donc notre travail d'implantation.
+Ce document présente donc notre travail d'implantation et nos réponses.
 
 <h2 id="methodologie">Réponses aux questions</h2>
+
+<h3>Question 1</h3>
+<p>
+Le graphe représentant l'échiquier mutilé est un graphe bi-parti parce
+qu'il est simple et non-orienté et il admet un 2-coloration.  Notre
+preuve se déroule en trois étapes : construire le graphe,
+démontrer qu'il admet une 2-coloration, démontrer que tout graphe
+simple et non-orienté admettant une 2-coloration est bi-parti.
+
+<p>
+Premièrement, nous cherchons à construire le graphe représentant
+l'échiquier mutilé.  Soit
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mi>n</mi>
+  <mo>&in;</mo>
+  <mi>&Nopf;</mi>
+</math> et 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>M</mi>
+    <mo>=</mo>
+    <mfenced>
+      <msub>
+        <mi>M</mi>
+        <mrow>
+          <mi>i</mi>
+          <mo>,</mo>
+          <mi>j</mi>
+        </mrow>
+      </msub>
+    </mfenced>
+    <mo>&in;</mo>
+    <msup>
+     <mrow>
+          <mo>{</mo>
+          <mn>0</mn>
+          <mo>;</mo>
+          <mi>1</mi>
+          <mo>}</mo>
+        </mrow>
+      <msup>
+        <mi>n</mi>
+        <mn>2</mn>
+      </msup>
+    </msup>
+  </mrow>
+</math> la matrice représentant l'échiquier mutilé, où
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <msub>
+      <mi>m</mi>
+      <mrow>
+        <mi>i</mi>
+        <mo>,</mo>
+        <mi>j</mi>
+      </mrow>
+    </msub>
+    <mo>=</mo>
+    <mn>0</mn>
+  </mrow>
+</math> si la case <math><mi>i</mi><mo>,</mo><mi>j</mi></math> est mutilée,
+<math><mn>1</mn></math> sinon.
+Ainsi, posons
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>V</mi>
+    <mo>=</mo>
+    <mo>{</mo>
+    <mrow>
+      <mo>(</mo>
+      <mi>i</mi>
+      <mo>,</mo>
+      <mi>j</mi>
+      <mo>)</mo>
+      <mo>&#x2208;</mo>
+      <msup>
+        <mrow>
+          <mo>[</mo>
+          <mn>1</mn>
+          <mo>;</mo>
+          <mi>n</mi>
+          <mo>]</mo>
+        </mrow>
+        <mn>2</mn>
+      </msup>
+      <mo>&#x2236;</mo>
+      <msub>
+        <mi>m</mi>
+        <mrow>
+          <mi>i</mi>
+          <mo>,</mo>
+          <mi>j</mi>
+        </mrow>
+      </msub>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mo>}</mo>
+  </mrow>
+</math> et
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>E</mi>
+    <mo>=</mo>
+    <mo>{</mo>
+    <mrow>
+      <mo>{</mo>
+      <mo>(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo>)</mo>
+      <mo>,</mo>
+      <mo>(</mo><mi>i'</mi><mo>,</mo><mi>j'</mi><mo>)</mo>
+      <mo>}</mo>
+      <mo>&#x2236;</mo> <!-- "tel que" -->
+      <mrow>
+        <mo>(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo>)</mo>
+        <mo>&#x2208;</mo>
+        <mi>V</mi>
+        <mo>,</mo>
+        <mo>(</mo><mi>i'</mi><mo>,</mo><mi>j'</mi><mo>)</mo>
+        <mo>&#x2208;</mo>
+        <mi>V</mi>
+        <mo>,</mo>
+        <mo>|</mo><mi>i'</mi><mo>-</mo><mi>i</mi><mo>|</mo>
+        <mo>+</mo>
+        <mo>|</mo><mi>j'</mi><mo>-</mo><mi>j</mi><mo>|</mo>
+        <mo>=</mo>
+        <mn>1</mn>
+      </mrow>
+    </mrow>
+    <mo>}</mo>
+  </mrow>
+</math>.
+Donc 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>G</mi>
+    <mo>=</mo>
+    <mo>(</mo>
+    <mi>V</mi>
+    <mo>,</mo>
+    <mi>E</mi>
+    <mo>)</mo>
+  </mrow>
+</math> est un graphe simple et non-orienté représentant l'échiquier
+mutilé.
+
+<p>
+Deuxièmement, nous voulons prouver que notre graphe admet une 2-coloration.
+Soit <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>c</mi>
+    <mo>(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo>)</mo>
+    <mo>=</mo>
+    <mrow>
+      <mi>i</mi>
+      <mo>+</mo>
+      <mi>j</mi>
+      <mo>mod</mo>
+      <mn>2</mn>
+    </mrow>
+    <mo>,</mo>
+    <mi>i</mi>
+    <mo>,</mo>
+    <mi>j</mi>
+    <mo>&#x2208;</mo>
+    <mo>[</mo><mn>1</mn><mo>;</mo><mi>n</mi><mo>]</mo>
+  </mrow>
+</math> une 2-coloration.
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mo>&#x2200;</mo>
+    <mo>(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo>)</mo>
+    <mo>,</mo>
+    <mo>(</mo><mi>i'</mi><mo>,</mo><mi>j'</mi><mo>)</mo>
+    <mo>&#x2208;</mo>
+    <mi>E</mi>
+  </mrow>
+</math>, et par définition de <math><mi>E</mi></math>,
+soit <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>i</mi>
+    <mo>=</mo>
+    <mi>i'</mi>
+    <mo>,</mo>
+    <mo>|</mo><mi>j'</mi><mo>-</mo><mi>j</mi><mo>|</mo>
+    <mo>=</mo>
+    <mn>1</mn>
+    <mo>&#x21D2;</mo>
+    <mi>j'</mi>
+    <mo>=</mo>
+    <mi>j</mi>
+    <mo>&#x00B1;</mo>
+    <mn>1</mn>
+  </mrow>
+</math>, soit
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>j</mi>
+    <mo>=</mo>
+    <mi>j'</mi>
+    <mo>,</mo>
+    <mo>|</mo><mi>i'</mi><mo>-</mo><mi>i</mi><mo>|</mo>
+    <mo>=</mo>
+    <mn>1</mn>
+    <mo>&#x21D2;</mo>
+    <mi>i'</mi>
+    <mo>=</mo>
+    <mi>i</mi>
+    <mo>&#x00B1;</mo>
+    <mn>1</mn>
+  </mrow>.
+</math>
+Alors <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>i'</mi>
+    <mo>+</mo>
+    <mi>j'</mi>
+    <mo>=</mo>
+    <mi>i</mi>
+    <mo>+</mo>
+    <mi>j</mi>
+    <mo>&#x00B1;</mo>
+    <mn>1</mn>
+  </mrow>
+</math>.
+Donc <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>c</mi><mo>(</mo><mi>i'</mi><mo>,</mo><mi>j'</mi><mo>)</mo>
+    <mo>=</mo>
+    <mi>i'</mi><mo>+</mo><mi>j'</mi>
+    <mo>mod</mo><mn>2</mn>
+    <mo>=</mo>
+    <mi>i</mi><mo>+</mo><mi>j</mi>
+    <mo>&#x00B1;</mo><mn>1</mn>
+    <mo>mod</mo><mn>2</mn>
+    <mo>=</mo>
+    <mi>i</mi><mo>+</mo><mi>j</mi>
+    <mo>mod</mo><mn>2</mn>
+    <mo>&#x2295;</mo><mn>1</mn>
+  </mrow>
+</math>, <math><mo>&#x2295;</mo></math> étant l'addition en arithmétique
+modulaire.
+Donc <math><mi>c</mi></math> est une 2-coloration propre de notre <math><mi>G</mi></math>.
+
+<p>
+Dernièrement, nous voulons démontrer qu'un graphe simple et non-orienté
+admettant une 2-coloration est bi-parti. Soit <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>G</mi>
+    <mo>=</mo>
+    <mo>(</mo><mi>V</mi><mo>,</mo><mi>E</mi><mo>)</mo>
+  </mrow>
+</math> un graphe et <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>c</mi>
+    <mo>:</mo>
+    <mi>V</mi>
+    <mo>&#x2192;</mo>
+    <mo>{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>}</mo>
+  </mrow>
+</math> une 2-coloration propre admise par <math><mi>G</mi></math>.
+Posons <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>N</mi>
+    <mo>=</mo>
+    <mo>{</mo>
+      <mi>v</mi>
+      <mo>&#x2208;</mo>
+      <mi>V</mi>
+      <mo>|</mo>
+      <mi>c</mi><mo>(</mo><mi>v</mi><mo>)</mo><mo>=</mo><mn>0</mn>
+    <mo>}</mo>
+  </mrow>
+</math> et <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>B</mi>
+    <mo>=</mo>
+    <mo>{</mo>
+      <mi>v</mi>
+      <mo>&#x2208;</mo>
+      <mi>V</mi>
+      <mo>|</mo>
+      <mi>c</mi><mo>(</mo><mi>v</mi><mo>)</mo><mo>=</mo><mn>1</mn>
+    <mo>}</mo>
+  </mrow>
+</math>. Alors <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>V</mi>
+    <mo>=</mo>
+    <mi>N</mi>
+    <mo>&#x222A;</mo>
+    <mi>B</mi>
+  </mrow>
+</math>. CQFD.
+
+<p>
+Nous avons donc construit formellement un graphe bi-parti représentant
+l'échiquier mutilé.
+
+<h3>Question 2</h3>
+<p>
+Nous voulons démontrer <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mo>|</mo>
+    <mi>E</mi>
+    <mo>|</mo>
+    <mo>&le;</mo>
+    <mn>2</mn>
+    <mo>|</mo>
+    <mi>V</mi>
+    <mo>|</mo>
+  </mrow>
+</math>.
+
+Nous savons que,
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+
+    <!-- ∀ v ∈ V -->
+    <mo>&forall;</mo>
+    <mi>v</mi>
+    <mo>&in;</mo>
+    <mi>V</mi>
+    <mo>,</mo>
+
+    <!-- δ(G) ≤ deg(v) ≤ Δ(G) -->
+    <mrow>
+      <mi>&delta;</mi>
+      <mfenced>
+        <mi>G</mi>
+      </mfenced>
+      <mo>&le;</mo>
+      <mi>deg</mi>
+      <mfenced>
+        <mi>v</mi>
+      </mfenced>
+      <mo>&le;</mo>
+      <mi>&Delta;</mi>
+      <mfenced>
+        <mi>G</mi>
+      </mfenced>
+    </mrow>
+
+    <!-- ⇒ -->
+    <mo>&Implies;</mo>
+
+    <!-- 2n ≤ Σ_{v∈V} deg(v) ≤ 4n -->
+    <mrow>
+      <mn>2</mn><mi>n</mi>
+      <mo>&le;</mo>
+
+      <msubsup>
+        <mo>&Sum;</mo>
+        <mrow>
+          <mi>v</mi>
+          <mo>&in;</mo>
+          <mi>V</mi>
+        </mrow>
+        <none/>
+      </msubsup>
+
+      <mi>deg</mi>
+      <mfenced>
+        <mi>v</mi>
+      </mfenced>
+
+      <mo>&le;</mo>
+      <mn>4</mn><mi>n</mi>
+    </mrow>
+
+    <mo>,</mo>
+
+    <!-- n ∈ ℕ -->
+    <mi>n</mi>
+    <mo>&in;</mo>
+    <mi>&Nopf;</mi>
+  </mrow>
+</math>.
+
+Or, pour un graphe simple et non-orienté, nous savons aussi que
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+
+    <!-- Σ_{v ∈ V} deg(v) -->
+    <msubsup>
+      <mo>&Sum;</mo>
+      <mrow>
+        <mi>v</mi>
+        <mo>&in;</mo>
+        <mi>V</mi>
+      </mrow>
+      <none/>
+    </msubsup>
+
+    <mi>deg</mi>
+    <mfenced>
+      <mi>v</mi>
+    </mfenced>
+
+    <!-- = -->
+    <mo>=</mo>
+
+    <!-- 2|E| -->
+    <mn>2</mn>
+    <mo>|</mo>
+    <mi>E</mi>
+    <mo>|</mo>
+
+  </mrow>
+</math>.
+
+Donc,
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+
+    <!-- 2n ≤ Σ_{v ∈ V} deg(v) ≤ 4n -->
+    <mn>2</mn><mi>n</mi>
+    <mo>&le;</mo>
+
+    <msubsup>
+      <mo>&Sum;</mo>
+      <mrow>
+        <mi>v</mi>
+        <mo>&in;</mo>
+        <mi>V</mi>
+      </mrow>
+      <none/>
+    </msubsup>
+
+    <mi>deg</mi>
+    <mfenced>
+      <mi>v</mi>
+    </mfenced>
+
+    <mo>&le;</mo>
+    <mn>4</mn><mi>n</mi>
+
+    <!-- ⇒ -->
+    <mo>&Implies;</mo>
+
+    <!-- 2n ≤ 2|E| ≤ 4n -->
+    <mn>2</mn><mi>n</mi>
+    <mo>&le;</mo>
+    <mn>2</mn>
+    <mfenced open="|" close="|">
+      <mi>E</mi>
+    </mfenced>
+    <mo>&le;</mo>
+    <mn>4</mn><mi>n</mi>
+
+    <!-- ⇒ -->
+    <mo>&Implies;</mo>
+
+    <!-- n ≤ |E| ≤ 2n -->
+    <mi>n</mi>
+    <mo>&le;</mo>
+    <mfenced open="|" close="|">
+      <mi>E</mi>
+    </mfenced>
+    <mo>&le;</mo>
+    <mn>2</mn><mi>n</mi>
+
+    <!-- CQFD -->
+    <mo>.</mo>
+    <mtext>&nbsp;CQFD</mtext>
+
+  </mrow>
+</math>.
+
+<h3>Question 3</h3>
+<p>
+Nous pouvons modéliser les dominos par un couplage : un domino est une
+arête entre deux sommets dinstincts (il n'est pas possible de placer un
+domino sur un autre).  Alors si le couplage est parfait, il est possible
+de paver toutes les cases.
+
+
+<h3>Question 4</h3>
+
+<pre><code class="language-ocaml">
+let construire_gm g m n b =
+  let open Ensemble in
+  let open Graphe in
+  let gm = creer (ordre g) in
+  let arc (u,v) = g @?? (u,v) || g @?? (v,u) in
+  let ins (u,v) =
+    if (u,v) @? m || (v,u) @? m then gm ++ (v,u)
+    else gm ++ (u,v)
+  in
+  (n * b) |? arc |> ins;
+  gm
+</code></pre>
+
+<h3>Question 5</h3>
+<pre><code class="language-ocaml">
+let construire_niveaux gm n b =
+  let open Ensemble in
+  let open Graphe in
+  let h = creer (ordre gm) in
+  let niv = Array.make (ordre gm) (-1) in
+  let _ = n |> (fun u -> niv.(u) <- 0) in
+  let f u =
+    let succ v = Stdlib.(niv.(v) = -1 || niv.(v) = niv.(u) + 1) in
+    let visit v = niv.(v) <- Stdlib.(niv.(u) + 1); h ++ (u,v) in
+    let _ = voisins gm u |? succ |> visit in ()
+  in
+  let _ = bfs gm n f in
+  let k =
+    match (b |? (fun u -> niv.(u) <> -1)) |> (fun u -> niv.(u)) with
+    | [] -> -1
+    | l -> List.fold_left min max_int l
+  in h, niv, k
+</code></pre>
+
+<h3>Question 6</h3>
+<pre><code class="language-ocaml">
+let renverser h =
+  let open Graphe in
+  let open List in
+  let ht = creer (ordre h) in
+  let _ = Array.iteri (fun u k -> iter (fun v -> ht ++ (v,u)) k) h in
+  ht
+</code></pre>
+
+<h3>Question 7</h3>
+<pre><code class="language-ocaml">
+let chemins_augmentants h z k =
+  let open Graphe in
+  let open List in
+  let tag = Array.make (ordre h) false in
+  let p = ref [] in
+  let f u =
+    if not tag.(u) then
+      let aug = ref false in
+      let chemin = ref [] in
+      let g v =
+        if not !aug && not tag.(v) then begin
+          chemin := v :: !chemin;
+          if mem v z then aug := true
+        end
+      in
+      dfs h [u] g;
+      if !aug then begin
+        iter (fun v -> tag.(v) <- true) !chemin;
+        p := rev !chemin :: !p
+      end
+  in
+  iter f k;
+  !p
+</code></pre>
+
+<h3>Question 8</h3>
+<pre><code class="language-ocaml">
+let hopcroft_karp g n b =
+  let open Ensemble in
+  let libres e m =
+    let tt x = not (existe m (fun (u, v) -> u = x || v = x)) in
+    e |? tt
+  in
+  let niv_k niv k b = b |? (fun u -> niv.(u) = k) in
+  let rec boucle m =
+    let gm = construire_gm g m n b in
+    let ln = libres n m in
+    let lb = libres b m in
+    let h, niv, k = construire_niveaux gm ln lb in
+    let ht = renverser h in
+    let lz = niv_k niv 0 ln in
+    let lk = niv_k niv k lb in
+    let p = chemins_augmentants ht lz lk in
+    match p with
+| vide -> m
+| s -> let c = List.fold_left (+) vide s boucle ((m + c) - (m & c))
+  in
+  boucle vide
+</code></pre>
+
 
 <h2 id="resultats">Implantation</h2>
 
@@ -162,7 +737,7 @@ lui passant le chemin vers le fichier d'entrée.
 
 <p>
 Nous avons choisi OCaml comme langage d'implantation pour sa
-flexibilité lros de l'exploration d'algorithmes plus ou moins complexes.
+flexibilité lors de l'exploration d'algorithmes plus ou moins complexes.
 N'ayant aucune contrainte réelle de performance, nous ne nous sommes
 pas restreint à utiliser un langage comme C ou C++ où nous aurions du
 nous occuper de détails relatifs à la machine plutôt qu'au
@@ -170,7 +745,9 @@ problème présenté.
 
 <h2 id="conclusion">Conclusion</h2>
 
-TODO
+Nous avons présenté nos réponses aux questions du sujet puis indiqué
+le fichier contenu le code source, avant de terminer sur une explication
+du choix du langage OCaml comme implantation.
 
 <h2 id="references">Références</h2>
 <p>
